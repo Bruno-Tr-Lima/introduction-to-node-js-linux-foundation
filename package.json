@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "static": "serve -p 5050 static",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,5 +16,10 @@
   "bugs": {
     "url": "https://github.com/Bruno-Tr-Lima/introduction-to-node-js-linux-foundation/issues"
   },
-  "homepage": "https://github.com/Bruno-Tr-Lima/introduction-to-node-js-linux-foundation#readme"
+  "homepage": "https://github.com/Bruno-Tr-Lima/introduction-to-node-js-linux-foundation#readme",
+  "dependencies": {
+    "fastify": "^4.26.1",
+    "fastify-cli": "^6.1.1",
+    "serve": "^14.2.1"
+  }
 }
