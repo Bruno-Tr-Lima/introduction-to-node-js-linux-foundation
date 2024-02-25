@@ -1,0 +1,21 @@
+{
+  "name": "introduction-to-node-js-linux-foundation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "static": "serve -p 5050 static",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bruno-Tr-Lima/introduction-to-node-js-linux-foundation.git"
+  },
+  "author": "Bruno-Tr-Lima",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Bruno-Tr-Lima/introduction-to-node-js-linux-foundation/issues"
+  },
+  "homepage": "https://github.com/Bruno-Tr-Lima/introduction-to-node-js-linux-foundation#readme"
+}
