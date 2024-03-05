@@ -2,7 +2,6 @@
 import { got } from "got";
 import { Command } from "commander";
 import { update, add, listCategories, listCategoryItems } from "../src/utils.js";
-import {  } from "../src/utils.js";
 
 const API = "http://localhost:3000";
 

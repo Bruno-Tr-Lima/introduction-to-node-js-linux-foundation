@@ -1,11 +1,6 @@
 // Import GOT to make HTTP requests
 import { got } from "got";
-import { displayTimestamp } from "./displays.js";
-import { displayInfo } from "./displays.js";
-import { displayID } from "./displays.js";
-import { displayAmount } from "./displays.js";
-import { displayText } from "./displays.js";
-import { displaySuccess } from "./displays.js";
+import { displayTimestamp, displayInfo, displayID, displayAmount, displayText, displaySuccess, displayCategory, displayName, displayRRP, displayKey } from "./displays.js";
 
 // Set the API URL
 const API = "http://localhost:3000";
@@ -55,38 +50,56 @@ export async function update(id, amount) {
 
 // Add a new order
 export async function add(...args) {
-    // Destructure the arguments
-    let [category, id, name, amount, info] = args;
-    log(`Adding item ${id} with amount ${amount}`);
-    try {
-        if (isNaN(+amount)) {
-            error(`Error: <AMOUNT> must be a number`);
-            process.exit(1);
-        }
-        // Use GOT to make a POST request to the API
-        await got.post(`${API}/${category}`, {
-            json: {
-                id,
-                name,
-                rrp: +amount,
-                info: info.join(" ")
-            }
-        });
-        // Log the result to the console
-        log(`Item "${id}:${name}" has been added to the ${category} category`);
-    } catch (err) {
-        // If there is an error, log it to the console and exit
-        error(err.message);
-        process.exit(1);
+  // Destructure the arguments
+  let [category, id, name, amount, info] = args;
+  log(`${displayTimestamp()}`);
+  log(`
+    ${displayInfo(`Request to add item to category`)} ${displayCategory(
+      category
+    )}`
+  );
+  log(`
+    ${displayText("Adding item")} ${displayID(id)} ${displayText(
+      "with amount"
+    )} ${displayAmount(`$${amount}`)}`
+  );
+  try {
+    if (isNaN(+amount)) {
+      error(`<AMOUNT> must be a number`);
+      process.exit(1);
     }
+    // Use GOT to make a POST request to the API
+    await got.post(`${API}/${category}`, {
+      json: {
+        id,
+        name,
+        rrp: +amount,
+        info: info.join(" "),
+      },
+    });
+    // Log the result to the console
+    log(`
+      ${displaySuccess("Product Added! :")} ${displayID(id)} ${displayName(
+        name
+      )} ${displayText("has been added to the")} ${displayCategory(
+        category
+      )} ${displayText("category")}`
+    );
+  } catch (err) {
+    // If there is an error, log it to the console and exit
+    error(err.message);
+    process.exit(1);
+  }
 }
 
 // List the categories
 export function listCategories() {
-    log("Listing categories");
+    log(displayTimestamp());
+    log(displayInfo("Listing Categories"));
     try {
         // Loop through the categories and log them to the console
-        for (const cat of categories) log(cat);
+        log(displayText("Categories received from API:"));
+        for (const cat of categories) log(displayCategory(cat));
     } catch (err) {
         // If there is an error, log it to the console and exit
         error(err.message);
@@ -96,15 +109,21 @@ export function listCategories() {
 
 // List the IDs for the given category
 export async function listCategoryItems(category) {
-    log(`Listing IDs for category ${category}`);
+    log(displayTimestamp());
+    log(`${displayInfo(`List IDs`)}`);
+
     try {
         // Use GOT to make a GET request to the API
         const result = await got(`${API}/${category}/`).json();
         // Log the result to the console
+        log(`${displaySuccess("IDs received from API:")}`);
         for (const item of result) {
-            log(
-                `${item.id}: ${item.name} - $${item.rrp}\nProduct Info:\t${item.info}`
-            );
+            log(`
+                ${displayKey("ID:")}\t${displayID(item.id)}
+                ${displayKey(`Name:`)}\t${displayName(item.name)}
+                ${displayKey("RRP:")}\t${displayRRP(item.rrp)}
+                ${displayKey("Product Info:")}\n\t${displayText(item.info)}
+            `);
         }
     } catch (err) {
         // If there is an error, log it to the console and exit
