@@ -1,5 +1,12 @@
 // Import GOT to make HTTP requests
 import { got } from "got";
+import { displayTimestamp } from "./displays.js";
+import { displayInfo } from "./displays.js";
+import { displayID } from "./displays.js";
+import { displayAmount } from "./displays.js";
+import { displayText } from "./displays.js";
+import { displaySuccess } from "./displays.js";
+
 // Set the API URL
 const API = "http://localhost:3000";
 // Set the categories
@@ -17,7 +24,12 @@ export const error = (msg) => {
 
 // Update the order with the given ID
 export async function update(id, amount) {
-    console.log(`Updating order ${id} with amount ${amount}`);
+    log(`${displayTimestamp()}`);
+    log(
+        `${displayInfo(`Updating Order`)} ${displayID(id)} ${displayText(
+            "with amount",
+        )} ${displayAmount(amount)}`
+    );
     try {
         if (isNaN(+amount)) {
             log("Error: <AMOUNT> must be a number");
@@ -28,7 +40,12 @@ export async function update(id, amount) {
             json: { amount: +amount }
         });
         // Log the result to the console
-        console.log(`Order ${id} updated with amount ${amount}`);
+        log(
+            `${displaySuccess()} ${displayText("Order")} ${displayID(
+                id
+            )} ${displayText("updated with amount")}
+            ${displayAmount(amount)}`
+        );
     } catch (err) {
         // If there is an error, log it to the console and exit
         console.log(err.message);
