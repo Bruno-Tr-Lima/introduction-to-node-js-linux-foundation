@@ -29,87 +29,151 @@ const program = new Command();
 
 // Create a new Program
 program
-    .name("my-cli") // Set the name of the program
-    .description("Back office for My App") // Set the description
-    .version("1.0.0"); // Set the version
+  // Set the name of the program
+  .name("my-cli")
+  // Set the description
+  .description("Back office for My App")
+  // Set the version
+  .version("1.0.0")
+  // Set the option to run application in interactive mode
+  .option("-i, --interactive", "Run App in interactive mode")
+  // Set the primary program action to be executed when no commands are specified
+  .action(() => {
+    // No-operation (noop)
+  });
 
-// Create a command for adding a new order program
-program
-    // Set the command name
-    .command("update")
-    // Set the argument ID to be required
-    .argument("<ID>", "Order ID")
-    // Set the argument AMOUNT to be required
-    .argument("<AMOUNT>", "Order Amount")
-    // Set the action to be executed when the command is run
-    .action(async (id, amount) => await update(id, amount));
+ 
 
-// Create a command for listening categories by IDs
+// Create a command for updating an order
 program
-  // Set the command name
+  .command("update")
+  .description("Update an order")
+  .option("-i, --interactive", "Run Update Command in interactive mode")
+  .argument("[ID]", "Order ID")
+  .argument("[AMOUNT]", "Order Amount");
+
+// Create a command for listing categories by IDs
+program
   .command("add")
-  // Set the command description
   .description("Add Product by ID to a Category")
-  // Set the category to be required
-  .argument("<CATEGORY>", "Product Category")
-  // Set the argument ID to be required
-  .argument("<ID>", "Product ID")
-  // Set the argument NAME to be required
-  .argument("<NAME>", "Product Name")
-  // Set the argument AMOUNT to be required
-  .argument("<AMOUNT>", "Product RRP")
-  // Set the argument INFO to be optional
-  .argument("[INFO...]", "Product Info")
-  // Set the action to be executed when the command is run
-  .action(
-    async (category, id, name, amount, info) =>
-      await add(category, id, name, amount, info)
-  )
+  // Set the option to run command in interactive mode
+  .option("-i, --interactive", "Run Update Command in interactive mode")
+  .argument("[CATEGORY]", "Product Category")
+  .argument("[ID]", "Product ID")
+  .argument("[NAME]", "Product Name")
+  .argument("[AMOUNT]", "Product RRP")
+  .argument("[INFO...]", "Product Info");
 
 // Create a command for listing categories
 program
-  // Set the command name
   .command("list")
-  // Set the command description
   .description("List categories")
-  // Set the category to be optional
-  .argument("[CATEGORY]", "Category to list IDs for")
-  // Set the option to list all categories
+  // Set the option to run command in interactive mode
+  .option("-i, --interactive", "Run Update Command in interactive mode")
   .option("-a, --all", "List all categories")
-  // Set the action to be executed when the command is run
-  .action(async (args, opts) => {
-    if (args && opts.all)
-      throw new Error("Cannot specify both category and 'all'");
-    if (opts.all || args === "all") {
-      listCategories();
-    } else if (args === "confectionery" || args === "electronics") {
-      await listCategoryItems(args);
-    } else {
-      throw new Error("Invalid category specified");
-    }
-  });
+  .argument("[CATEGORY]", "Category to list IDs for");
 
 // Parse the arguments from process.argv
 program.parse();
 
-// Update the order with the given ID
-// async function updateItem(id, amount) {
-//     usage(`Updating order ${id} with amount ${amount}`);
-//     try {
-//          if (isNaN(+amount)) {
-//             usage("Error: <AMOUNT> must be a number");
-//             process.exit(1);
-//          }
-//          // Use GOT to make a POST request to the API
-//          await got.post(`${API}/orders/${id}`,
-//          {
-//             json: { amount: +amount },
-//          });
-//          // Log the result to the console
-//          usage(`Order ${id} updated with amount ${amount}`);
-//     } catch (err) {
-//         // If there is an error, log it to the console and exit
-//         console.error(err.message);
-//         process.exit(1);
-//     }
-// }
+export const interactiveApp = async (cmd) => {
+  log(displayText(`Back office for My App`));
+  log(displayInfo(`Interactive Mode`));
+  try {
+    const command = cmd ?? await promptCommand();
+    switch (command) {
+      case "add":
+        log(displayInfo(`Add Order`));
+        await promptAddOrder();
+        return interactiveApp();
+      case "update":
+        log(displayInfo(`Update Order`));
+        await promptUpdate();
+        return interactiveApp();
+      case "list":
+        log(displayInfo(`List Categories`));
+        await listCategories();
+        return interactiveApp();
+      case "list by ID's":
+        log(displayInfo(`List Category Items`));
+        await promptListIds();
+        return interactiveApp();
+      case "help":
+        program.help();
+      case "exit":
+        process.exit(0);
+    }
+  } catch (err) {
+    error(err);
+    process.exit(1);
+  }
+};
+
+// Main function to run the program
+async function main(program) {
+  // Get the command, process.args and options
+  const command = program?.args.at(0) || "";
+  const cliArgs = program?.args.slice(1) || [];
+  const options = program?.opts() || {};
+
+  // Guard clauses
+  if (!command && !options.interactive) {
+    // Display the help
+    program.help();
+  }
+  if (!command && options.interactive) {
+    // Run the interactive app
+    return interactiveApp();
+  }
+  if (command && options.interactive) {
+    // Run the interactive app with the command
+    return interactiveApp(command);
+  }
+  if (options.interactive && cliArgs.length > 0) {
+    throw new Error("Cannot specify both interactive and command");
+    process.exit(1);
+  }
+  // Execute the command
+  switch (command) {
+    case "add": {
+      const [category, id, name, amount, info] = cliArgs;
+      if (
+        !categories.includes(category) ||
+        !category ||
+        !id ||
+        !name ||
+        !amount
+      ) {
+        throw new Error("Invalid arguments specified");
+      }
+      await add(category, id, name, amount, info);
+      break;
+    }
+    case "update": {
+      const [id, amount] = cliArgs;
+      if (!id && !amount) {
+        throw new Error("Invalid arguments specified");
+      }
+      await update(id, amount);
+      break;
+    }
+    case "list": {
+      const { all } = options;
+      const [category] = cliArgs;
+      if (category && all)
+        throw new Error("Cannot specify both category and 'all'");
+      if (all || category === "all") {
+        listCategories();
+      } else if (categories.includes(category)) {
+        await listCategoryItems(category);
+      } else {
+        throw new Error("Invalid category specified");
+      }
+      break;
+    }
+    default:
+      await interactiveApp();
+  }
+}
+// Run the main function
+main(program);
